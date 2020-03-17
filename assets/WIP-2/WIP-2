@@ -1,1 +1,11 @@
-
+layout: wip-2
+wip: <to be assigned>
+title: <A series of articles to that described the detail of wisdomchain technology>
+author: <Cyanglacier,onemice@126.com>
+discussions-to: <URL>
+status: Draft
+type: <Standards Track (Core, Consensus, Crypto, Networking, WRC, Interface) >
+category (*only required for Standard Track): < Interface >
+created: <2020-03-17>
+requires (*optional): <WIP number(s)>
+replaces (*optional): <WIP number(s)>
