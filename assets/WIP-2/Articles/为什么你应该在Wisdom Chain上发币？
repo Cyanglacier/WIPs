@@ -1,0 +1,78 @@
+引言
+        时间回溯到2015年的6月，Vitalik Buterin在github上提交了一项通用代币合约的APIs文件，同年11月，在Fabin与Vitalik的共同工作下，这项通用的代币交互合约被整合入EIP（以太坊改进提案）正式使用，并被命名为ERC-20。ERC-20的问世，拉开了“一键发币”的代币狂潮，并最终引发了2017年数字货币泡沫市场——无数的ICO项目凭借以太坊网络与ERC-20标准，凭空创造了数十倍与以往市场的流动性。然而，随着2018年多个针对ERC-20相关合约的攻击事件，以及市场整体情况的走熊，ERC-20热度也不复往日。那么，什么是ERC-20标准？又该怎样避免重蹈黑客攻击的覆辙？
+ERC-20
+        ERC是Ethereum Request for Comment以太坊意见征求的缩写，其中第20项意见即被成为ERC-20。ERC-20是为同质化代币设立的标准（意味着所有代币都是等价的，相互之间没有任何区别），并能被其他合约或应用所调用。在以太坊上使用ERC-20标准构建智能合约，至少应当包含以下内容：
+        ①合约的名字：用来为合约/代币命名
+        ②合约的标志：类似ETH之于以太坊，作用等同于股票代码
+        ③小数位：定义代币的分割性，如果小数位为0代表代币不可分，小数位最高为18位（即小数点后18位）
+        ④总供给：代表合约中所有代币余额之和，这是ERC-20标准中的唯一强制参数。
+        除此之外，符合ERC-20标准的智能合约还应当具备以下代码：
+contract ERC20Interface {
+
+    function totalSupply() public constant returns (uint);
+    function balanceOf(address tokenOwner) public constant returns (uint balance);
+    function allowance(address tokenOwner, address spender) public constant returns (uint remaining);
+    function transfer(address to, uint tokens) public returns (bool success);
+    function approve(address spender, uint tokens) public returns (bool success);
+    function transferFrom(address from, address to, uint tokens) public returns (bool success);
+
+    event Transfer(address indexed from, address indexed to, uint tokens);
+    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
+}
+        上述代码包含了ERC-20中的两大事件与四大功能：
+两大事件：
+        ①Transfer事件：该事件负责放出合约代币从一个地址转向另一个地址的支付细节。
+        ②Approval事件：此事件将放出被许可的代币从一个地址转向另一个地址之细节。
+        上述两大事件共同负责跟踪地址余额与配额的变化情况，在合约执行交易时此两类事件必定会被触发。
+五大功能：
+        ①balanceOf功能：将会提供某一特定地址所持有的合约代币总量。
+        ②allowance功能：允许从规定一个地址转移到另一个地址的代币数量（配额），防止单一地址转出过多代币。
+        ③transfer功能：允许发送者直接转移代币到另一个地址中，这项功能不会查验交易对象地址，也不会查验发送者的代币数量。
+        ④approve与transferFrom功能：虽然是两个功能，但其共同完成一项步骤——为交易提供配额并占用许可数量的通证作为合约运行的一部分。
+        进一步解释，由于transfer不会检查调用合约对象们的地址与具体代币数量，即使调用者拥有符合调用条件的代币，transfer也无法识别并正确回应请求；而通过approve与transferFrom，合约可以在交易发起前占用调用者钱包中的相关代币作为合约运行的基础并反馈给transfer，这样transfer就能正确的回应合约调用情况。
+        ⑤totalSupply功能：同上文所提到的“总供给”概念一致，用以确定合约的代币上限。
+黑客攻击事件
+        然而，由于以太坊智能合约定义函数过于灵活，加上代码编写者不规范的代码编写习惯，ERC-20遭受了数次黑客的攻击。其中最具代表性的即是2018年上半年出现的BEC代币的黑客攻击事件。
+        回顾BEC代币黑客攻击事件，黑客利用ERC-20智能合约中的BatchOverFlow漏洞，从BEC合约中成功铸造并转出了天量级别的BEC代币并在交易所抛售，让BEC的价格几近归零。与现实中印制的“假钞”不同，该漏洞产生的代币同合约中的真实代币没有任何差距，合约无法识别假币。然而，复盘本次黑客攻击，漏洞的原因更令人咋舌。
+        在BEC的合约（地址：0xc5d105e63711398af9bbff092d4b6769c82f793d）中存在此代码：
+图片: https://uploader.shimo.im/f/eV5CfCfh8ggsliTG.JPG
+        在这一项功能中，(cnt) 和 _value 的计算结果生成了局部变量，第二个参数 _value可以为任意的256字节整数，如果将value定义为256字节整数的超大值，令cnt * value的值超过unit256的最大值后，后续代码中的amout将为0（数据溢出所导致），而BEC的智能合约中缺乏对amout值是否大于0的检测，因此攻击者可以在账户不转出任何BEC的情况下，凭空转出大量的BEC。
+图片: https://uploader.shimo.im/f/xuIK8QF3xSgZeRNK.JPG
+黑客利用数据溢出漏洞，凭空转出了天量的BEC代币
+        仅仅只是因为合约代码中缺乏对溢出攻击的防护，BEC便遭受了黑客的攻击，而最终遭受损失的却是广大持币用户。除了BEC的溢出攻击事件以外，以太坊的假充值漏洞事件、EDU代币的异常回滚交易事件等都导致了大量用户蒙受损失，对于承载了价值的区块链而言，如果合约安全性不能得到保障，该区块链最终将会失去信任，从而失去价值。
+Wisdom Chain解决方案
+        针对以太坊上多次出现的黑客事件，Wisdom Chain认识到，不仅仅是资产合约，包括众筹、投票、交易等在内的代码设计都存在漏洞可能，只是隐蔽与否的差别，同时无法被公众通俗理解的合约将无法让公众自身信任该合约。总结起来，大部分的以太坊智能合约都存在如下弊端：
+①缺乏对区块链资产的特殊定义
+②图灵完备的合约过于灵活，缺乏安全性
+③复杂的语法与语言导致阅读与改进障碍
+④内部触发的合约事件无法保证安全性
+⑤合约缺乏“验证”阶段，且无法像普通程序一般升级。
+        对此，Wisdom Chain突破性的采用了一种可阅读可识别的规则描述语句——验证式规则编程。通过提前定义且编码好的功能（如资产定义、多重签名、存证、抵押等），让脚本设计严格围绕功能且不超出边界；采用非图灵完备式语言，避免内部调用导致的漏洞；采用可阅读可识别的格式降低代码审阅门槛。在这种设计下，在Wisdom Chain上发币不仅简单，还能避免以太坊ERC-20标准合约的诸多问题，举例如下，如果我们要在Wisdom Chain上发行一个名叫CEB的代币，那么它的代码将是：
+{
+    "ASSET_RULE": {
+        "code": "CEB",
+        "offering": 1000000,
+        "totalamount":1000000,
+        "create": "xxxx",
+        "owner": "yyyy",
+        "allowincrease": 0
+        "info":{} 
+    }
+}
+        在上述代码中，我们定义了一个名叫CEB的代币，他的初始供应量与总供给为100万，在“资产定义”功能下，该代码还拥有三个规则函数，为changeowner、transfer以及increased（实际代码以更新文档为准）。对于更多的Wisdom Chain资产定义规则，可以参阅公众号上的《WisdomChain关于资产定义的SDK操作说明》（链接：https://mp.weixin.qq.com/s/TelV1hGF5glrOgt0CtVX-w）一文了解详情。
+        人无法避免犯错，所以我们有了规则。Wisdom Chain利用规则来限制脚本边界，为开发者与用户提供安全可靠的代币发行方案。随着价值互联网的不断传播推广，如何保护区块链上的资产安全将是所有从业人员不得不面对的问题，而Wisdom Chain采用的验证式规则编程将会是众多答卷中耀眼的一张。
+
+
+参考文献：
+1、EduCoin(EDU) 智能合约漏洞分析及修复方法
+链接：https://mp.weixin.qq.com/s/GWP-CjsHW6b8Qs-huIRNCw
+
+2、以太坊代币“假充值”漏洞细节披露及修复方案
+链接：https://mp.weixin.qq.com/s/3cMbE6p_4qCdVLa4FNA5-A
+
+3、BEC 智能合约无限转币漏洞分析及预警
+链接：https://mp.weixin.qq.com/s/KLTSlOUVT27e0d1z-blJ7g
+
+4、理解ERC-20 token合约
+链接：https://ethfans.org/posts/understanding-erc-20-token-contracts
+
