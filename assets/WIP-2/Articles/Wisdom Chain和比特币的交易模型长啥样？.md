@@ -10,7 +10,7 @@
 
 比特币的交易模型为UTXO（Unspend Transaction Output未花费的交易输出）结构，抽象地讲，UTXO结构就像生活中去小卖铺用现金购买物品一样，钱包里的钞票就是你所拥有的UTXO，购买过程中涉及到凑钱（将多个UTXO凑成一个，或者直接用一个UTXO支付），支付（将UTXO作为输入），找零（将多给的钱以UTXO形式再发回来）。在代码层面，比特币的交易结构表现为如下情况：
 
-!(BitcoinTX)[https://github.com/Cyanglacier/WIPs/raw/master/assets/WIP-2/Pictures/Bitcoin%20TX.PNG]
+![](https://github.com/Cyanglacier/WIPs/raw/master/assets/WIP-2/Pictures/Bitcoin%20TX.PNG)
 
 比特币的交易结构相对复杂，这个例子里我们可以轻松的看到比特币的交易结构组成
 
@@ -31,7 +31,7 @@
 
 Wisdom Chain和比特币类似，均采用了UTXO结构作为交易的基本框架，不过不同点在于，在JAVA语言的基础上，结合近10年区块链技术的发展积累，Wisdom Chain的交易模型相比比特币更加简洁。另一方面硬编码的各种事务规则可以视为适用于UTXO结构的智能合约（一般来说，由于传统UTXO结构缺乏世界状态树的更新，普遍认为以太坊的智能合约很难应用到传统UTXO中），不需要layer2方案也可以确保项目具备灵活性，可以适用于各种复杂的场景之中。Wisdom Chain的交易结构在代码层面可以表达为：
 
-!(WisdomChainTX)[https://github.com/Cyanglacier/WIPs/raw/master/assets/WIP-2/Pictures/Wisdom%20Chain%20TX.PNG]
+![](https://github.com/Cyanglacier/WIPs/raw/master/assets/WIP-2/Pictures/Wisdom%20Chain%20TX.PNG)
 
 对比比特币，结构上精简了许多。交易中的各项数值定义如下：
 
@@ -39,7 +39,7 @@ Wisdom Chain和比特币类似，均采用了UTXO结构作为交易的基本框�
 
 + type：交易类型。Wisdom Chain中的交易可以看作是一种“事务”，既然是事务就有诸多定义，Wisdom Chain中最常见的交易类型包括：Coinbase交易（用于挖掘出新区块时奖励矿工），转账交易，投票，发行代币，提取利息等等。交易类型不同，交易的结构也会有所差别，具体的交易类型种类如下：
 
-!(WisdomChainTXType)[https://github.com/Cyanglacier/WIPs/raw/master/assets/WIP-2/Pictures/WDC%E4%BA%A4%E6%98%93%E7%B1%BB%E5%9E%8B.PNG]
+![](https://github.com/Cyanglacier/WIPs/raw/master/assets/WIP-2/Pictures/WDC%E4%BA%A4%E6%98%93%E7%B1%BB%E5%9E%8B.PNG)
 
 
 + nonce：随机数，一般用来对交易进行排序，避免发起重复交易。在挖矿中，区块的nonce则代表着矿工执行工作量证明的参数。
